@@ -13,3 +13,11 @@ tokio = { version = "1.23.0", features = ["full"] }
 tokio-stream = "0.1.11"
 uuid = { version = "1.2.2", features = ["v4"] }
 warp = "0.3.3"
+
+[[bin]]
+name = "broadcast"
+path = "src/broadcast/main.rs"
+
+[[bin]]
+name = "client2client"
+path = "src/client2client/main.rs"

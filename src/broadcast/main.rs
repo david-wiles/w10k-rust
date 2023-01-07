@@ -6,11 +6,11 @@ use tokio::time::{Duration, interval};
 async fn main() {
     pretty_env_logger::init();
 
-    // Keep track of all connected users, key is usize, value
-    // is a websocket sender.
+    // Keep track of all connected client using UUID
     let connections = w10k::Connections::default();
     {
         let connections = connections.clone();
+
         // Start broadcasting to all connections
         tokio::spawn(async move {
             let ping_interval = env::var("PING_INTERVAL")
@@ -27,12 +27,10 @@ async fn main() {
 
     {
         let connections = connections.clone();
-        // Turn our "state" into a new Filter...
         let conns_filter = warp::any().map(move || connections.clone());
 
-        // GET / -> websocket upgrade
+        // GET /ws -> websocket upgrade
         let routes = warp::path("ws")
-            // The `ws()` filter will prepare Websocket handshake...
             .and(warp::ws())
             .and(conns_filter)
             .map(|ws: warp::ws::Ws, conns| {

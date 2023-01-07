@@ -17,17 +17,19 @@ use chrono::DateTime;
 pub type Connections = Arc<RwLock<HashMap<Uuid, mpsc::UnboundedSender<Message>>>>;
 
 pub async fn user_connected(ws: WebSocket, conns: Connections) {
-    // Use a counter to assign a new unique ID for this user.
+    // Generate a random UUID to identify the new connection
     let my_id = Uuid::new_v4();
 
     println!("new conection: {}", my_id);
 
     // Split the socket into a sender and receive of messages.
     let (mut user_ws_tx, mut user_ws_rx) = ws.split();
+
+    // Create channel for sending messages to this websocket
     let (tx, rx) = mpsc::unbounded_channel();
     let mut rx = UnboundedReceiverStream::new(rx);
 
-    // Send messages to the websocket received from this write stream
+    // While this channel is open, read messages and send to the client
     tokio::task::spawn(async move {
         while let Some(message) = rx.next().await {
             user_ws_tx
@@ -63,7 +65,7 @@ pub async fn broadcast(conns: &Connections) {
     let now: DateTime<Utc> = SystemTime::now().into();
     let text = format!("The current time is {}", now.format("%+"));
 
-    // Send message to all connected websockets
+    // Acquire read lock on conns and write to every client
     for (&uid, tx) in conns.read().await.iter() {
         if let Err(_disconnected) = tx.send(Message::text(text.clone())) {
             // The tx is disconnected, the websocket is waiting to be removed from the map
