@@ -21,8 +21,7 @@ resource "digitalocean_droplet" "w10k-rust" {
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get update",
-      // scp executables
-      "git clone https://github.com/david-wiles/w10k-rust.git"
+      "sudo apt-get -y install ca-certificates libssl-dev",
     ]
   }
 }
